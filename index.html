@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MKAL Overheard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#041745;--panel:#062970;--ink:#f3efe6;--mute:#a9bbe3;--line:#2a4fa3;--pop:#ff8a4c;--paper:#f3efe6;--paperink:#062970}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;min-height:100vh}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--pop);outline-offset:2px}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:clamp(24px,4vw,40px);font-weight:800;letter-spacing:-.02em}
+h1 small{display:block;font-size:13px;font-weight:400;color:var(--mute);letter-spacing:0}
+.ib{background:none;border:1px solid var(--line);border-radius:50%;width:40px;height:40px}
+.tools{display:flex;flex-wrap:wrap;gap:10px;padding:18px 24px}
+.tools input,.tools select{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.tools input{flex:1;min-width:180px}
+main{padding:0 24px 100px;columns:4 260px;column-gap:16px}
+main.l1{columns:1;max-width:560px;margin:0 auto}
+main.l2{columns:2 260px}
+.card{break-inside:avoid;margin:0 0 16px;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:14px;cursor:pointer;border:1px solid var(--line)}
+.card.a{background:var(--paper);color:var(--paperink)}
+.card.b{background:var(--panel)}
+.meta{display:flex;justify-content:space-between;font-size:13px;opacity:.75}
+.q{font-size:20px;font-weight:600;line-height:1.3;white-space:pre-wrap;margin:6px 0}
+.where{font-style:italic;font-size:13px;opacity:.8}
+.foot{display:flex;justify-content:space-between}
+.pill{border:1px solid currentColor;background:none;border-radius:99px;padding:4px 12px;font-size:14px;opacity:.85}
+.pill.on{background:var(--pop);border-color:var(--pop);color:#1b0d05;opacity:1}
+.compact .q{font-size:16px}
+main.cp{columns:1;max-width:760px;margin:0 auto}
+main.cp .card{flex-direction:row;align-items:center;gap:16px}
+main.cp .q{flex:1;font-size:16px}
+main.cp .foot,main.cp .meta{flex-direction:column;gap:6px}
+.fab{position:fixed;right:24px;bottom:24px;width:60px;height:60px;border-radius:50%;border:0;background:var(--pop);color:#1b0d05;font-size:32px;box-shadow:0 6px 20px #0008}
+dialog{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:24px;width:min(560px,92vw)}
+dialog::backdrop{background:#000a}
+dialog h2{margin:0 0 14px}
+label{display:block;font-size:14px;color:var(--mute);margin:12px 0 4px}
+dialog input,dialog textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px}
+.row{display:flex;gap:12px}.row>div{flex:1}
+.go{margin-top:16px;width:100%;background:var(--pop);color:#1b0d05;border:0;border-radius:8px;padding:12px;font-weight:600}
+.x{float:right;background:none;border:0;font-size:22px}
+.cm{border-top:1px solid var(--line);padding:10px 0;font-size:15px}
+.cm b{color:var(--pop)}
+.note{font-size:13px;color:var(--mute);text-align:center;margin:10px 0 0}
+.empty{color:var(--mute);padding:40px 0;text-align:center}
+@media(prefers-reduced-motion:no-preference){.card{transition:transform .15s}.card:hover{transform:translateY(-3px)}}
+</style>
+</head>
+<body>
+<header>
+  <button class="ib" id="aboutBtn" aria-label="Hakkında">?</button>
+  <h1>MKAL Overheard<small>Bütün MKAL burada konuşuyor.</small></h1>
+  <span style="width:40px"></span>
+</header>
+<div class="tools">
+  <input id="q" type="search" placeholder="Duyum ara…" aria-label="Ara">
+  <select id="layout" aria-label="Görünüm">
+    <option value="auto">Otomatik</option><option value="l1">Tekli</option><option value="l2">İkili</option><option value="cp">Kompakt</option>
+  </select>
+  <select id="sort" aria-label="Sırala">
+    <option value="new">En yeni</option><option value="old">En eski</option><option value="views">Görüntülenme</option><option value="likes">Beğeni</option>
+  </select>
+</div>
+<main id="grid"></main>
+<button class="fab" id="addBtn" aria-label="Duyum ekle">+</button>
+
+<dialog id="about">
+  <button class="x" data-close aria-label="Kapat">×</button>
+  <h2>Overheard nedir?</h2>
+  <p>Overheard, kantinde, bahçede veya çardakta duyduğunuz ilgi çekici komik ve absürt olayların anonim bir şekilde paylaşılmasıdır.</p>
+</dialog>
+
+<dialog id="add">
+  <button class="x" data-close aria-label="Kapat">×</button>
+  <h2>Bugün neler duydun?</h2>
+  <label>Duyum <span id="cnt" style="float:right">0 / 200</span></label>
+  <textarea id="aText" rows="4" maxlength="200" placeholder="Duyduğun cümleyi yaz…"></textarea>
+  <div class="row">
+    <div><label>Yer</label><input id="aPlace" placeholder="Çardak"></div>
+    <div><label>Zaman</label><input id="aTime" placeholder="Öğle Arası, 3. Ders"></div>
+  </div>
+  <label>Kişi sayısı</label><input id="aPeople" placeholder="1 Kız 1 Erkek">
+  <button class="go" id="send">Gönder</button>
+  <p class="note" id="addNote">Onaylandıktan sonra yayınlanır.</p>
+</dialog>
+
+<dialog id="view">
+  <button class="x" data-close aria-label="Kapat">×</button>
+  <div id="vBody"></div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const sb=supabase.createClient('https://pdjuzmhmutpigwbmxtxj.supabase.co','sb_publishable_zo0gWJLsSNZW9keJUgQ15Q_rJNFh0lE');
+let posts=[],liked=[],failed=false,loaded=false;
+try{liked=JSON.parse(localStorage.getItem('mkal-liked'))||[]}catch(e){}
+const saveL=()=>{try{localStorage.setItem('mkal-liked',JSON.stringify(liked))}catch(e){}};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ts=p=>new Date(p.created_at).getTime();
+const cc=p=>(p.comments&&p.comments[0]&&p.comments[0].count)||0;
+const where=p=>esc([p.place,p.time_text,p.people].filter(Boolean).join(', '));
+function ago(t){const ms=Date.now()-t,d=Math.floor(ms/864e5);if(d<1){const h=Math.floor(ms/36e5);return h<1?'az önce':h+' saat önce'}return d+' gün önce'}
+
+async function load(){
+  const {data,error}=await sb.from('posts').select('*, comments(count)').eq('status','approved').order('created_at',{ascending:false}).limit(500);
+  if(error)failed=true;else posts=data;
+  loaded=true;render();
+}
+function render(){
+  const g=$('#grid'),term=$('#q').value.toLowerCase(),s=$('#sort').value;
+  g.className=$('#layout').value==='auto'?'':$('#layout').value;
+  let list=posts.filter(p=>(p.text+(p.place||'')).toLowerCase().includes(term));
+  list.sort((a,b)=>s==='old'?ts(a)-ts(b):s==='views'?b.views-a.views:s==='likes'?b.likes-a.likes:ts(b)-ts(a));
+  if(!loaded){g.innerHTML='<p class="empty">Yükleniyor…</p>';return}
+  if(failed){g.innerHTML='<p class="empty">Duyumlar yüklenemedi. Sayfayı yenileyip tekrar dene.</p>';return}
+  g.innerHTML=list.length?list.map((p,i)=>`
+   <article class="card ${i%2?'b':'a'}" data-id="${p.id}" tabindex="0">
+     <div class="meta"><span>👁 ${p.views}</span><span>${ago(ts(p))}</span></div>
+     <div><div class="q">${esc(p.text)}</div><div class="where">${where(p)}</div></div>
+     <div class="foot"><span class="pill">💬 ${cc(p)}</span><button class="pill ${liked.includes(String(p.id))?'on':''}" data-like="${p.id}">♥ ${p.likes}</button></div>
+   </article>`).join(''):`<p class="empty">${posts.length?'Eşleşen duyum yok.':'Henüz duyum yok. İlk duyumu sen gönder.'}</p>`;
+}
+async function openPost(id,keepViews){
+  const p=posts.find(x=>x.id==id);if(!p)return;
+  if(!keepViews){p.views++;sb.rpc('add_view',{pid:p.id});render()}
+  const {data}=await sb.from('comments').select('*').eq('post_id',p.id).order('created_at');
+  const cs=data||[];p.comments=[{count:cs.length}];
+  $('#vBody').innerHTML=`
+   <div class="meta"><span>Anonim · ${ago(ts(p))} · 👁 ${p.views}</span></div>
+   <div class="q" style="font-size:24px;margin:16px 0 4px">${esc(p.text)}</div>
+   <div class="where">${where(p)}</div>
+   <h3 style="margin:20px 0 0">Yorumlar (${cs.length})</h3>
+   ${cs.map(c=>`<div class="cm"><b>${esc(c.nick||'Anonim')}</b> ${esc(c.text)}</div>`).join('')||'<p class="empty" style="padding:16px 0">Henüz yorum yok. İlk sen yaz.</p>'}
+   <div class="row" style="margin-top:12px"><input id="cNick" placeholder="Nick" maxlength="30" style="max-width:130px"><input id="cText" placeholder="Yorum yaz…" maxlength="200"></div>
+   <button class="go" data-comment="${p.id}">Yorumu gönder</button>`;
+  if(!$('#view').open)$('#view').showModal();
+  render();
+}
+document.addEventListener('click',async e=>{
+  const t=e.target;
+  if(t.dataset.close!==undefined)t.closest('dialog').close();
+  else if(t.dataset.like){const id=String(t.dataset.like),p=posts.find(x=>x.id==id),on=liked.includes(id);
+    if(on){liked=liked.filter(x=>x!==id);p.likes=Math.max(p.likes-1,0)}else{liked.push(id);p.likes++}
+    saveL();render();sb.rpc('add_like',{pid:p.id,d:on?-1:1});e.stopPropagation()}
+  else if(t.dataset.comment){const txt=$('#cText').value.trim();if(!txt)return;
+    t.disabled=true;
+    const {error}=await sb.from('comments').insert({post_id:+t.dataset.comment,nick:$('#cNick').value.trim()||null,text:txt});
+    if(error){t.disabled=false;t.textContent='Gönderilemedi, tekrar dene';return}
+    openPost(t.dataset.comment,true)}
+  else{const c=t.closest('.card');if(c)openPost(c.dataset.id)}
+});
+$('#grid').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList.contains('card'))openPost(e.target.dataset.id)});
+$('#aboutBtn').onclick=()=>$('#about').showModal();
+$('#addBtn').onclick=()=>{$('#addNote').textContent='Onaylandıktan sonra yayınlanır.';$('#add').showModal()};
+$('#aText').oninput=e=>$('#cnt').textContent=e.target.value.length+' / 200';
+$('#send').onclick=async()=>{
+  const text=$('#aText').value.trim(),n=$('#addNote'),b=$('#send');
+  if(!text){n.textContent='Duyum alanı boş olamaz.';return}
+  b.disabled=true;n.textContent='Gönderiliyor…';
+  const {error}=await sb.from('posts').insert({text,place:$('#aPlace').value.trim()||null,time_text:$('#aTime').value.trim()||null,people:$('#aPeople').value.trim()||null});
+  if(error)n.textContent='Gönderilemedi. İnternet bağlantını kontrol edip tekrar dene.';
+  else{['aText','aPlace','aTime','aPeople'].forEach(i=>$('#'+i).value='');$('#cnt').textContent='0 / 200';n.textContent='Gönderildi. Onaylandıktan sonra yayınlanır.'}
+  b.disabled=false;
+};
+['q','layout','sort'].forEach(i=>$('#'+i).addEventListener('input',render));
+render();load();
+</script>
+</body>
+</html>
